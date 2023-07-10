@@ -33,10 +33,13 @@ class DeferrableGutHubSensor(BaseSensorOperator):
             return True
         else:
             # Using the async TimeDeltaTrigger to defer for defer_time_minute minutes
+            # and only defer if time after defer does not concur with next schedule time
             if context['data_interval_end'] < datetime.now(pytz.utc) - timedelta(minutes=self.defer_time_minutes):
                 trigger = TimeDeltaTrigger(
                     timedelta(minutes=self.defer_time_minutes))
                 self.defer(trigger=trigger, method_name="poke")
+            else:
+                return True
 
     def has_file_changed(self):
         # using classic http requests to get the commit information
